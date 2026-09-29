@@ -1,0 +1,1972 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PEGAFIS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #060a14;
+      --panel: #0d1526;
+      --panel2: #111d35;
+      --accent: #00e5ff;
+      --accent2: #ff6b35;
+      --accent3: #a8ff3e;
+      --text: #e0f0ff;
+      --text-dim: #FFFFFF;
+      --border: #1a2d4a;
+      --glow: 0 0 20px rgba(0, 229, 255, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Sora', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .mono {
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* Animated starfield background */
+    .starfield {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at 20% 50%, rgba(0, 60, 120, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(0, 229, 255, 0.05) 0%, transparent 50%);
+    }
+
+    /* Header */
+    header {
+      position: relative;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+      background: rgba(6, 10, 20, 0.8);
+      backdrop-filter: blur(20px);
+    }
+
+    .logo-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1)
+      }
+
+      50% {
+        opacity: 0.6;
+        transform: scale(0.8)
+      }
+    }
+
+    /* Tabs */
+    .tab-btn {
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.2s;
+      cursor: pointer;
+      color: var(--text-dim);
+      border: 1px solid transparent;
+    }
+
+    .tab-btn.active {
+      background: rgba(0, 229, 255, 0.1);
+      color: var(--accent);
+      border-color: rgba(0, 229, 255, 0.3);
+      box-shadow: var(--glow);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    /* Panels */
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.03) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .panel-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #8aa8c8;
+      font-family: 'Sora', sans-serif;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    /* Canvas */
+    canvas {
+      display: block;
+      border-radius: 8px;
+    }
+
+    /* Sliders */
+    .slider-track {
+      position: relative;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.3);
+    }
+
+    input[type=range].orange::-webkit-slider-thumb {
+      background: var(--accent2);
+      box-shadow: 0 0 10px var(--accent2);
+    }
+
+    input[type=range].green::-webkit-slider-thumb {
+      background: var(--accent3);
+      box-shadow: 0 0 10px var(--accent3);
+    }
+
+    /* Value badges */
+    .val-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(0, 229, 255, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      min-width: 75px;
+      text-align: center;
+    }
+
+    .val-badge.orange {
+      background: rgba(255, 107, 53, 0.1);
+      color: var(--accent2);
+      border-color: rgba(255, 107, 53, 0.2);
+    }
+
+    .val-badge.green {
+      background: rgba(168, 255, 62, 0.1);
+      color: var(--accent3);
+      border-color: rgba(168, 255, 62, 0.2);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #0088aa);
+      color: #000;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.25);
+      transition: all 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 30px rgba(0, 229, 255, 0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 13px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent);
+    }
+
+    .btn-danger {
+      background: rgba(255, 60, 60, 0.1);
+      color: #ff6060;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 22px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 60, 60, 0.25);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-danger:hover {
+      background: rgba(255, 60, 60, 0.2);
+    }
+
+    /* Info card */
+    .info-card {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 18px;
+    }
+
+    .info-card h4 {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 8px;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .info-card p {
+      font-size: 13px;
+      color: #8aa8c8;
+      line-height: 1.6;
+    }
+
+    .info-card strong {
+      color: var(--text);
+    }
+
+    /* Materi section */
+    .materi-card {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .materi-card:hover {
+      border-color: rgba(0, 229, 255, 0.3);
+    }
+
+    .materi-header {
+      padding: 14px 18px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 229, 255, 0.03);
+    }
+
+    .materi-body {
+      padding: 0 18px;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, padding 0.3s;
+    }
+
+    .materi-body.open {
+      max-height: 500px;
+      padding: 14px 18px;
+    }
+
+    .formula-box {
+      background: rgba(0, 229, 255, 0.07);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 8px;
+      padding: 12px 16px;
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 15px;
+      color: var(--accent);
+      margin: 10px 0;
+      letter-spacing: 1px;
+    }
+
+    /* Quiz */
+    .quiz-option {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+      text-align: left;
+      width: 100%;
+      color: var(--text);
+    }
+
+    .quiz-option:hover {
+      border-color: var(--accent);
+      background: rgba(0, 229, 255, 0.06);
+    }
+
+    .quiz-option.correct {
+      background: rgba(168, 255, 62, 0.12);
+      border-color: var(--accent3);
+      color: var(--accent3);
+    }
+
+    .quiz-option.wrong {
+      background: rgba(255, 60, 60, 0.12);
+      border-color: #ff6060;
+      color: #ff8080;
+    }
+
+    .quiz-option:disabled {
+      cursor: default;
+    }
+
+    .score-ring {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 3px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--accent);
+      box-shadow: 0 0 20px rgba(0, 229, 255, 0.3);
+      margin: 0 auto 12px;
+    }
+
+    /* Particle canvas overlay */
+    #particleCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+
+    /* Section title underline */
+    .section-title::after {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      margin-top: 6px;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    /* Tab pages */
+    .tab-page {
+      display: none;
+    }
+
+    .tab-page.active {
+      display: block;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .sim-grid {
+        grid-template-columns: 1fr !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- COVER SCREEN -->
+  <div id="introScreen" style="
+    position:fixed;
+    inset:0;
+    background:#060a14;
+    z-index:9999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+    padding:24px;
+    overflow-y:auto;
+  ">
+    <!-- Animated background orbs -->
+    <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden">
+      <div
+        style="position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,255,0.06) 0%,transparent 70%);top:-100px;left:-100px;animation:floatOrb 8s ease-in-out infinite">
+      </div>
+      <div
+        style="position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,53,0.05) 0%,transparent 70%);bottom:-80px;right:-80px;animation:floatOrb 10s ease-in-out infinite reverse">
+      </div>
+    </div>
+
+    <style>
+      @keyframes floatOrb {
+
+        0%,
+        100% {
+          transform: translate(0, 0)
+        }
+
+        50% {
+          transform: translate(30px, 20px)
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px)
+        }
+
+        to {
+          opacity: 1;
+          transform: translateY(0)
+        }
+      }
+
+      @keyframes waveAnim {
+
+        0%,
+        100% {
+          transform: scaleY(1)
+        }
+
+        50% {
+          transform: scaleY(0.4)
+        }
+      }
+
+      .cover-animate {
+        animation: fadeInUp 0.6s ease forwards;
+      }
+
+      .menu-card {
+        background: rgba(13, 21, 38, 0.8);
+        border: 1px solid #1a2d4a;
+        border-radius: 14px;
+        padding: 20px 24px;
+        cursor: pointer;
+        transition: all 0.25s;
+        text-align: center;
+        min-width: 130px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        backdrop-filter: blur(10px);
+      }
+
+      .menu-card:hover {
+        border-color: rgba(0, 229, 255, 0.5);
+        background: rgba(0, 229, 255, 0.06);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0, 229, 255, 0.15);
+      }
+
+      .menu-card .icon {
+        font-size: 32px;
+      }
+
+      .menu-card .label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #e0f0ff;
+        letter-spacing: 0.5px;
+      }
+
+      .menu-card .desc {
+        font-size: 11px;
+        font-weight: bold;
+        line-height: 1.4;
+      }
+
+      .wave-bar {
+        display: inline-block;
+        width: 4px;
+        border-radius: 4px;
+        background: var(--accent);
+        margin: 0 2px;
+        animation: waveAnim 1.2s ease-in-out infinite;
+      }
+    </style>
+
+    <!-- Logo & Title -->
+    <div class="cover-animate" style="margin-bottom:8px;animation-delay:0s">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:4px">
+        <div style="display:flex;align-items:flex-end;height:30px">
+          <div class="wave-bar" style="height:14px;animation-delay:0s"></div>
+          <div class="wave-bar" style="height:24px;animation-delay:0.15s"></div>
+          <div class="wave-bar" style="height:30px;animation-delay:0.3s"></div>
+          <div class="wave-bar" style="height:20px;animation-delay:0.45s"></div>
+          <div class="wave-bar" style="height:10px;animation-delay:0.6s"></div>
+        </div>
+        <h1
+          style="font-size:52px;font-weight:800;color:#00e5ff;letter-spacing:4px;text-shadow:0 0 40px rgba(0,229,255,0.4)">
+          PEGAFIS</h1>
+        <div style="display:flex;align-items:flex-end;height:30px">
+          <div class="wave-bar" style="height:10px;animation-delay:0.6s"></div>
+          <div class="wave-bar" style="height:20px;animation-delay:0.45s"></div>
+          <div class="wave-bar" style="height:30px;animation-delay:0.3s"></div>
+          <div class="wave-bar" style="height:24px;animation-delay:0.15s"></div>
+          <div class="wave-bar" style="height:14px;animation-delay:0s"></div>
+        </div>
+      </div>
+      <p style="font-size:15px;color:#8aa8c8;letter-spacing:2px;font-weight:300">Pembelajaran Edukatif Game Gelombang
+        Bunyi Fisika</p>
+    </div>
+
+    <!-- Divider -->
+    <div class="cover-animate"
+      style="width:100%;max-width:500px;height:1px;background:linear-gradient(to right,transparent,rgba(0,229,255,0.4),transparent);margin:20px 0;animation-delay:0.1s">
+    </div>
+
+    <!-- Info developer -->
+    <div class="cover-animate"
+      style="margin-bottom:28px;animation-delay:0.2s;background:rgba(13,21,38,0.6);border:1px solid #1a2d4a;border-radius:12px;padding:16px 28px;backdrop-filter:blur(10px)">
+      <div style="display:flex;gap:32px;justify-content:center;flex-wrap:wrap">
+        <div style="text-align:center">
+          <div
+            style="font-size:13px;font-weight:bold;letter-spacing:2px;color:#FFFFFF;text-transform:uppercase;margin-bottom:4px;font-family:'Space Mono',monospace">
+            Nama</div>
+          <div style="font-weight:700;font-size:14px;color:#e0f0ff">Silvia Salsabilla</div>
+        </div>
+        <div style="width:1px;background:#1a2d4a"></div>
+        <div style="text-align:center">
+          <div
+            style="font-size:13px;font-weight:bold;letter-spacing:2px;color:#FFFFFF;text-transform:uppercase;margin-bottom:4px;font-family:'Space Mono',monospace">
+            Prodi</div>
+          <div style="font-weight:700;font-size:14px;color:#e0f0ff">Pendidikan Fisika</div>
+        </div>
+        <div style="width:1px;background:#1a2d4a"></div>
+        <div style="text-align:center">
+          <div
+            style="font-size:13px;font-weight:bold;letter-spacing:2px;color:#FFFFFF;text-transform:uppercase;margin-bottom:4px;font-family:'Space Mono',monospace">
+            Kampus</div>
+          <div style="font-weight:700;font-size:14px;color:#e0f0ff">Universitas Negeri Surabaya</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menu Grid -->
+    <div class="cover-animate" style="margin-bottom:32px;animation-delay:0.3s">
+      <p
+        style="font-size:11px;letter-spacing:3px;color:#FFFFFF;text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:16px">
+        Pilih Menu</p>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
+        <div class="menu-card" onclick="masukApp('simulasi')">
+          <div class="icon">🌊</div>
+          <div class="label">Simulasi</div>
+          <div class="desc">Eksplorasi gelombang bunyi secara interaktif</div>
+        </div>
+        <div class="menu-card" onclick="masukApp('materi')">
+          <div class="icon">📖</div>
+          <div class="label">Materi</div>
+          <div class="desc">Konsep & teori gelombang bunyi</div>
+        </div>
+        <div class="menu-card" onclick="masukApp('lkpd')">
+          <div class="icon">📝</div>
+          <div class="label">LKPD</div>
+          <div class="desc">Lembar kerja peserta didik</div>
+        </div>
+        <div class="menu-card" onclick="masukApp('quiz')">
+          <div class="icon">🎯</div>
+          <div class="label">Latihan Soal</div>
+          <div class="desc">Teka-teki silang & kuis</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-animate" style="animation-delay:0.4s">
+      <button onclick="masukApp('simulasi')" class="btn-primary"
+        style="font-size:14px;padding:12px 32px;letter-spacing:1px">
+        🚀 Mulai Eksplorasi
+      </button>
+    </div>
+  </div>
+  <div class="starfield"></div>
+
+  <!-- HEADER -->
+  <header class="px-6 py-4" style="display:none" id="mainHeader">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="logo-dot"></div>
+        <span class="text-xl font-extrabold tracking-tight">PEGAFIS</span>
+
+      </div>
+      <div class="flex items-center gap-2" style="flex-wrap:wrap">
+        <button class="tab-btn active" data-tab="simulasi">🌊 Simulasi</button>
+        <button class="tab-btn" data-tab="materi">📖 Materi</button>
+        <button class="tab-btn" data-tab="lkpd">📝 LKPD</button>
+        <button class="tab-btn" data-tab="quiz">🎯 Latihan Soal</button>
+        <button class="tab-btn" onclick="document.getElementById('introScreen').style.display='flex'"
+          style="border-color:rgba(0,229,255,0.2);color:var(--text-dim)">🏠 Cover</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 relative z-10" style="display:none" id="mainContent">
+    <!-- ===== TAB: SIMULASI ===== -->
+    <div class="tab-page active" id="tab-simulasi">
+
+      <div class="mb-6">
+        <h1 class="text-2xl font-extrabold section-title" style="font-family:'Sora',sans-serif;color:var(--text)">
+          Simulasi Gelombang Bunyi</h1>
+        <p style="color:var(--text-dim);font-size:14px;margin-top:10px;font-family:'Sora',sans-serif">Eksplorasi
+          sifat-sifat gelombang bunyi secara interaktif. Ubah parameter dan amati perubahannya.</p>
+      </div>
+
+      <!-- ===== TUJUAN PENGGUNAAN MEDIA ===== -->
+      <div class="panel p-5 mb-4"
+        style="border-color:rgba(0,229,255,0.3);background:linear-gradient(135deg,rgba(0,229,255,0.05) 0%,rgba(13,21,38,0.9) 100%)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div
+            style="width:36px;height:36px;border-radius:50%;background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.4);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
+            🎯</div>
+          <div>
+            <div
+              style="font-size:13px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-family:'Space Mono',monospace;margin-bottom:2px">
+              Tujuan Penggunaan Media</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);font-family:'Sora',sans-serif">Mengapa
+              menggunakan simulasi ini?</div>
+          </div>
+        </div>
+        <p style="font-size:14px;color:#c8dff0;line-height:1.8;font-family:'Sora',sans-serif">
+          Penggunaan media simulasi gelombang bunyi bertujuan untuk membantu peserta didik <strong
+            style="color:var(--accent)">memahami konsep secara visual dan interaktif</strong>, menganalisis pengaruh
+          <strong style="color:var(--text)">frekuensi, amplitudo, dan medium</strong> terhadap karakteristik bunyi,
+          serta mengembangkan keterampilan berpikir kritis melalui pengamatan dan penarikan kesimpulan berbasis data. Di
+          dalam aplikasi ini terdapat <strong style="color:var(--accent3)">LKPD, simulasi, materi pembelajaran, serta
+            permainan edukatif</strong> yang mendukung proses belajar.
+        </p>
+      </div>
+
+      <!-- ===== FENOMENA ===== -->
+      <div class="panel p-5 mb-4"
+        style="border-color:rgba(255,107,53,0.3);background:linear-gradient(135deg,rgba(255,107,53,0.05) 0%,rgba(13,21,38,0.9) 100%)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div
+            style="width:36px;height:36px;border-radius:50%;background:rgba(255,107,53,0.15);border:1px solid rgba(255,107,53,0.4);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
+            🔍</div>
+          <div>
+            <div
+              style="font-size:13px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:var(--accent2);font-family:'Space Mono',monospace;margin-bottom:2px">
+              Fenomena</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);font-family:'Sora',sans-serif">Apa yang perlu
+              diselidiki?</div>
+          </div>
+        </div>
+        <p style="font-size:14px;color:#c8dff0;line-height:1.8;font-family:'Sora',sans-serif;margin-bottom:14px">
+          Suatu sore <strong style="color:var(--text)">Aldo</strong> sedang mendengarkan musik dari speaker di kamarnya.
+          Tanpa sengaja, ia mengubah pengaturan nada dan volume sehingga suara yang dihasilkan tiba-tiba terdengar
+          <strong style="color:var(--accent2)">lebih tinggi dan lebih keras</strong> dari sebelumnya, padahal perangkat
+          yang digunakan tetap sama. Rasa penasarannya semakin muncul ketika ia mencoba mendengarkan suara tersebut dari
+          kamar mandi yang berisi air, dan menyadari bahwa bunyi yang terdengar <strong
+            style="color:var(--accent)">berbeda</strong> dibandingkan saat ia berada di dalam kamar.
+        </p>
+        <p style="font-size:14px;color:#c8dff0;line-height:1.8;font-family:'Sora',sans-serif;margin-bottom:14px">
+          Ia mulai bertanya-tanya mengapa suara bisa berubah-ubah, seolah-olah memiliki karakter yang berbeda dalam
+          kondisi tertentu. Jika sumber bunyinya sama, <strong style="color:var(--accent3)">apa yang sebenarnya
+            menyebabkan perubahan tersebut?</strong>
+        </p>
+        <div
+          style="background:rgba(0,229,255,0.06);border:1px solid rgba(0,229,255,0.2);border-radius:10px;padding:14px 18px">
+          <div
+            style="font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--accent);font-family:'Space Mono',monospace;margin-bottom:6px">
+            Tugas Eksplorasi</div>
+          <p style="font-size:14px;color:#c8dff0;line-height:1.7;font-family:'Sora',sans-serif">Untuk memahami fenomena
+            tersebut, lakukan eksplorasi melalui simulasi gelombang bunyi dengan <strong
+              style="color:var(--accent)">memvariasikan frekuensi, amplitudo, dan medium perambatan</strong> di bawah
+            ini, lalu amati perubahannya!</p>
+        </div>
+      </div>
+
+      <!-- Main simulation canvas -->
+      <div class="panel p-4 mb-4" style="position:relative">
+        <div class="panel-label mb-2">Visualisasi Gelombang Longitudinal</div>
+        <canvas id="waveCanvas" style="width:100%;height:220px;border-radius:8px;background:#080f1e"></canvas>
+        <canvas id="particleCanvas"
+          style="border-radius:8px;background:transparent;position:absolute;top:0;left:0;pointer-events:none"></canvas>
+
+        <!-- Live readout overlay -->
+        <div class="absolute top-12 right-6 flex flex-col gap-1" style="z-index:5">
+          <div class="mono text-xs px-3 py-1 rounded"
+            style="background:rgba(0,229,255,0.12);border:1px solid rgba(0,229,255,0.25);color:var(--accent)">
+            λ = <span id="waveLen">1.00</span> m
+          </div>
+          <div class="mono text-xs px-3 py-1 rounded"
+            style="background:rgba(255,107,53,0.12);border:1px solid rgba(255,107,53,0.25);color:var(--accent2)">
+            T = <span id="period">1.00</span> ms
+          </div>
+          <div class="mono text-xs px-3 py-1 rounded"
+            style="background:rgba(168,255,62,0.12);border:1px solid rgba(168,255,62,0.25);color:var(--accent3)">
+            v = <span id="speedVal">343</span> m/s
+          </div>
+        </div>
+      </div>
+
+      <!-- Pressure canvas -->
+      <div class="panel p-4 mb-4">
+        <div class="panel-label">Grafik Tekanan Bunyi (Fungsi Waktu)</div>
+        <canvas id="pressureCanvas" style="width:100%;height:140px;border-radius:8px;background:#080f1e"></canvas>
+      </div>
+
+      <!-- Controls grid -->
+      <div class="grid gap-4 mb-4 sim-grid" style="grid-template-columns:1fr 1fr 1fr">
+
+        <!-- Frekuensi -->
+        <div class="panel p-4">
+          <div class="panel-label">Frekuensi</div>
+          <div class="flex justify-between items-center mb-3">
+            <span style="font-size:13px;color:var(--text-dim)">Tinggi nada</span>
+            <span class="val-badge" id="freqBadge">440 Hz</span>
+          </div>
+          <input type="range" id="freqSlider" min="50" max="2000" value="440" step="1">
+          <div class="flex justify-between mt-1" style="font-size:13px;font-weight:bold;color:var(--text-dim)">
+            <span>50 Hz</span><span>2000 Hz</span>
+          </div>
+          <div class="info-card mt-3">
+            <h4>Catatan</h4>
+            <p>Frekuensi menentukan <strong>tinggi rendah nada</strong>. Manusia mendengar 20–20.000 Hz.</p>
+          </div>
+        </div>
+
+        <!-- Amplitudo -->
+        <div class="panel p-4">
+          <div class="panel-label">Amplitudo</div>
+          <div class="flex justify-between items-center mb-3">
+            <span style="font-size:13px;color:var(--text-dim)">Kenyaringan</span>
+            <span class="val-badge orange" id="ampBadge">50%</span>
+          </div>
+          <input type="range" id="ampSlider" min="5" max="100" value="50" step="1" class="orange">
+          <div class="flex justify-between mt-1" style="font-size:13px;font-weight:bold;color:var(--text-dim)">
+            <span>Lemah</span><span>Keras</span>
+          </div>
+          <div class="info-card mt-3">
+            <h4>Catatan</h4>
+            <p>Amplitudo menentukan <strong>keras-lemah bunyi</strong> (intensitas). Diukur dalam desibel (dB).</p>
+          </div>
+        </div>
+
+        <!-- Medium / Kecepatan -->
+        <div class="panel p-4">
+          <div class="panel-label">Medium Perambatan</div>
+          <div class="flex flex-col gap-2 mt-1">
+            <button class="medium-btn btn-primary text-xs py-2 px-3" data-v="343" data-name="Udara (343 m/s)">🌬️
+              Udara</button>
+            <button class="medium-btn btn-secondary text-xs py-2 px-3" data-v="1480" data-name="Air (1480 m/s)">💧
+              Air</button>
+            <button class="medium-btn btn-secondary text-xs py-2 px-3" data-v="5100" data-name="Baja (5100 m/s)">⚙️
+              Baja</button>
+          </div>
+          <div class="info-card mt-3">
+            <p style="font-size:12px">Medium aktif: <strong id="mediumName" style="color:var(--accent)">Udara (343
+                m/s)</strong></p>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- Play/Stop buttons -->
+      <div class="flex gap-3 flex-wrap">
+        <button class="btn-primary" id="playBtn">▶ Play Bunyi</button>
+        <button class="btn-secondary" id="pauseBtn">⏸ Pause</button>
+        <button class="btn-danger" id="stopBtn">⏹ Stop</button>
+        <button class="btn-secondary" id="resetBtn">↺ Reset</button>
+      </div>
+    </div>
+
+    <!-- ===== TAB: MATERI ===== -->
+    <div class="tab-page" id="tab-materi">
+      <div class="mb-6">
+        <h1 class="text-2xl font-extrabold section-title">Materi Gelombang Bunyi</h1>
+        <p style="color:var(--text-dim);font-size:14px;margin-top:10px">Pelajari konsep gelombang bunyi dari dasar
+          hingga aplikasi.</p>
+      </div>
+
+      <div class="grid gap-3" id="materiList">
+
+        <div class="materi-card">
+          <div class="materi-header" onclick="toggleMateri(this)">
+            <div class="flex items-center gap-3">
+              <span style="font-size:20px">🔊</span>
+              <div>
+                <div style="font-weight:700;font-size:15px">Apa itu Gelombang Bunyi?</div>
+                <div style="font-size:12px;color:var(--text-dim)">Definisi dan karakteristik dasar</div>
+              </div>
+            </div>
+            <span style="color:var(--accent);font-size:20px">+</span>
+          </div>
+          <div class="materi-body">
+            <p style="font-size:14px;color:#8aa8c8;line-height:1.8">Gelombang bunyi adalah <strong
+                style="color:var(--text)">gelombang mekanik longitudinal</strong> yang merambat melalui medium (udara,
+              air, atau zat padat). Partikel-partikel medium bergerak <strong style="color:var(--accent)">searah dengan
+                arah rambat gelombang</strong>, menciptakan pola rapatan (kompresi) dan renggangan (rarefaksi).</p>
+            <div class="formula-box">Gelombang Longitudinal: arah getar ∥ arah rambat</div>
+            <p style="font-size:13px;color:#6a8aaa;margin-top:8px">Bunyi <strong style="color:#ff8080">tidak dapat
+                merambat</strong> di ruang hampa karena membutuhkan medium.</p>
+          </div>
+        </div>
+
+        <div class="materi-card">
+          <div class="materi-header" onclick="toggleMateri(this)">
+            <div class="flex items-center gap-3">
+              <span style="font-size:20px">📐</span>
+              <div>
+                <div style="font-weight:700;font-size:15px">Besaran Gelombang Bunyi</div>
+                <div style="font-size:12px;color:var(--text-dim)">Frekuensi, amplitudo, panjang gelombang</div>
+              </div>
+            </div>
+            <span style="color:var(--accent);font-size:20px">+</span>
+          </div>
+          <div class="materi-body">
+            <div class="grid gap-2" style="grid-template-columns:1fr 1fr">
+              <div class="info-card">
+                <h4>Frekuensi (f)</h4>
+                <p>Jumlah getaran per detik. Satuan: <strong>Hz</strong>. Menentukan <strong>tinggi nada</strong>.</p>
+              </div>
+              <div class="info-card">
+                <h4>Amplitudo (A)</h4>
+                <p>Simpangan maksimum. Menentukan <strong>keras bunyi (intensitas)</strong>.</p>
+              </div>
+              <div class="info-card">
+                <h4>Panjang Gelombang (λ)</h4>
+                <p>Jarak satu gelombang penuh. Satuan: <strong>meter</strong>.</p>
+              </div>
+              <div class="info-card">
+                <h4>Periode (T)</h4>
+                <p>Waktu satu getaran penuh. <strong>T = 1/f</strong>. Satuan: <strong>detik</strong>.</p>
+              </div>
+            </div>
+            <div class="formula-box">v = f × λ</div>
+            <div class="formula-box">T = 1 / f</div>
+          </div>
+        </div>
+
+        <div class="materi-card">
+          <div class="materi-header" onclick="toggleMateri(this)">
+            <div class="flex items-center gap-3">
+              <span style="font-size:20px">⚡</span>
+              <div>
+                <div style="font-weight:700;font-size:15px">Kecepatan Bunyi</div>
+                <div style="font-size:12px;color:var(--text-dim)">Pengaruh medium dan suhu</div>
+              </div>
+            </div>
+            <span style="color:var(--accent);font-size:20px">+</span>
+          </div>
+          <div class="materi-body">
+            <p style="font-size:14px;color:#8aa8c8;line-height:1.8">Kecepatan bunyi bergantung pada <strong
+                style="color:var(--text)">sifat medium</strong>, bukan frekuensi. Makin rapat medium, makin cepat bunyi
+              merambat.</p>
+            <div class="grid gap-2 mt-2" style="grid-template-columns:repeat(3,1fr)">
+              <div
+                style="text-align:center;padding:12px;background:rgba(0,229,255,0.07);border-radius:8px;border:1px solid rgba(0,229,255,0.15)">
+                <div style="font-size:20px">🌬️</div>
+                <div style="font-family:'Space Mono';font-size:14px;color:var(--accent);margin-top:4px">343 m/s</div>
+                <div style="font-size:11px;color:var(--text-dim)">Udara (20°C)</div>
+              </div>
+              <div
+                style="text-align:center;padding:12px;background:rgba(255,107,53,0.07);border-radius:8px;border:1px solid rgba(255,107,53,0.15)">
+                <div style="font-size:20px">💧</div>
+                <div style="font-family:'Space Mono';font-size:14px;color:var(--accent2);margin-top:4px">1.480 m/s</div>
+                <div style="font-size:11px;color:var(--text-dim)">Air</div>
+              </div>
+              <div
+                style="text-align:center;padding:12px;background:rgba(168,255,62,0.07);border-radius:8px;border:1px solid rgba(168,255,62,0.15)">
+                <div style="font-size:20px">⚙️</div>
+                <div style="font-family:'Space Mono';font-size:14px;color:var(--accent3);margin-top:4px">5.100 m/s</div>
+                <div style="font-size:11px;color:var(--text-dim)">Baja</div>
+              </div>
+            </div>
+            <div class="formula-box" style="margin-top:10px">v = 331 + 0.6T (udara, T = suhu °C)</div>
+          </div>
+        </div>
+
+        <div class="materi-card">
+          <div class="materi-header" onclick="toggleMateri(this)">
+            <div class="flex items-center gap-3">
+              <span style="font-size:20px">🚗</span>
+              <div>
+                <div style="font-weight:700;font-size:15px">Efek Doppler</div>
+                <div style="font-size:12px;color:var(--text-dim)">Perubahan frekuensi akibat gerak relatif</div>
+              </div>
+            </div>
+            <span style="color:var(--accent);font-size:20px">+</span>
+          </div>
+          <div class="materi-body">
+            <p style="font-size:14px;color:#8aa8c8;line-height:1.8">Efek Doppler terjadi saat sumber bunyi atau pengamat
+              bergerak relatif satu sama lain. Jika sumber <strong style="color:var(--accent)">mendekati</strong>
+              pengamat → frekuensi terdengar <strong style="color:var(--accent3)">lebih tinggi</strong>. Jika <strong
+                style="color:var(--accent2)">menjauh</strong> → frekuensi <strong style="color:#ff8080">lebih
+                rendah</strong>.</p>
+            <div class="formula-box">f' = f₀ × (v ± v_pendengar) / (v ∓ v_sumber)</div>
+            <div class="info-card mt-2">
+              <h4>Aplikasi</h4>
+              <p>Radar polisi, USG medis, astronomi (redshift), sonar kapal selam.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="materi-card">
+          <div class="materi-header" onclick="toggleMateri(this)">
+            <div class="flex items-center gap-3">
+              <span style="font-size:20px">👂</span>
+              <div>
+                <div style="font-weight:700;font-size:15px">Klasifikasi Gelombang Bunyi</div>
+                <div style="font-size:12px;color:var(--text-dim)">Infrasonik, audiosonik, ultrasonik</div>
+              </div>
+            </div>
+            <span style="color:var(--accent);font-size:20px">+</span>
+          </div>
+          <div class="materi-body">
+            <div class="grid gap-2">
+              <div class="info-card">
+                <h4>Infrasonik (&lt; 20 Hz)</h4>
+                <p>Tidak terdengar manusia. Digunakan hewan: gajah, paus. Terjadi pada gempa bumi.</p>
+              </div>
+              <div class="info-card">
+                <h4 style="color:var(--accent3)">Audiosonik (20–20.000 Hz)</h4>
+                <p>Dapat didengar manusia. Rentang ini disebut <strong>ambang pendengaran manusia</strong>.</p>
+              </div>
+              <div class="info-card">
+                <h4 style="color:var(--accent2)">Ultrasonik (&gt; 20.000 Hz)</h4>
+                <p>Digunakan kelelawar, lumba-lumba. Aplikasi: USG, pembersih ultrasonik, sonar.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="materi-card">
+          <div class="materi-header" onclick="toggleMateri(this)">
+            <div class="flex items-center gap-3">
+              <span style="font-size:20px">🔇</span>
+              <div>
+                <div style="font-weight:700;font-size:15px">Intensitas & Taraf Intensitas Bunyi</div>
+                <div style="font-size:12px;color:var(--text-dim)">Desibel dan level kebisingan</div>
+              </div>
+            </div>
+            <span style="color:var(--accent);font-size:20px">+</span>
+          </div>
+          <div class="materi-body">
+            <p style="font-size:14px;color:#8aa8c8;line-height:1.8">Intensitas bunyi (I) adalah daya per satuan luas.
+              Taraf intensitas (TI) dinyatakan dalam <strong style="color:var(--accent)">desibel (dB)</strong>.</p>
+            <div class="formula-box">TI = 10 × log(I / I₀) dB</div>
+            <p style="font-size:12px;color:var(--text-dim);margin-top:6px">I₀ = 10⁻¹² W/m² (ambang pendengaran)</p>
+            <div class="grid gap-2 mt-3" style="grid-template-columns:1fr 1fr">
+              <div class="info-card">
+                <h4>0 dB</h4>
+                <p>Ambang pendengaran</p>
+              </div>
+              <div class="info-card">
+                <h4>60 dB</h4>
+                <p>Percakapan normal</p>
+              </div>
+              <div class="info-card">
+                <h4>85 dB</h4>
+                <p>Lalu lintas padat (berbahaya)</p>
+              </div>
+              <div class="info-card">
+                <h4>120 dB</h4>
+                <p>Ambang rasa sakit</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: LKPD ===== -->
+    <div class="tab-page" id="tab-lkpd">
+      <div class="mb-6">
+        <h1 class="text-2xl font-extrabold section-title" style="font-family:'Sora',sans-serif;color:var(--text)">Lembar
+          Kerja Peserta Didik</h1>
+        <p style="color:var(--text-dim);font-size:14px;margin-top:10px;font-family:'Sora',sans-serif">Selesaikan
+          kegiatan berikut berdasarkan eksplorasi simulasi gelombang bunyi.</p>
+      </div>
+
+      <!-- LKPD Header Info -->
+      <div class="panel p-5 mb-4"
+        style="border-color:rgba(168,255,62,0.3);background:linear-gradient(135deg,rgba(168,255,62,0.04) 0%,rgba(13,21,38,0.9) 100%)">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+          <div>
+            <div
+              style="font-size:13px;font-weight:bold;letter-spacing:2px;color:#FFFFFF;text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:4px">
+              Mata Pelajaran</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text);font-family:'Sora',sans-serif">Fisika</div>
+          </div>
+          <div>
+            <div
+              style="font-size:13px;font-weight:bold;letter-spacing:2px;color:#FFFFFF;text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:4px">
+              Materi</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text);font-family:'Sora',sans-serif">Gelombang Bunyi
+            </div>
+          </div>
+          <div>
+            <div
+              style="font-size:13px;font-weight:bold;letter-spacing:2px;color:#FFFFFF;text-transform:uppercase;font-family:'Space Mono',monospace;margin-bottom:4px">
+              Kelas</div>
+            <div style="font-size:14px;font-weight:700;color:var(--text);font-family:'Sora',sans-serif">XI SMA/MA</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Identitas Peserta Didik -->
+      <div class="panel p-5 mb-4">
+        <div
+          style="font-size:13px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-family:'Space Mono',monospace;margin-bottom:14px">
+          Identitas Peserta Didik</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div>
+            <label
+              style="font-size:12px;color:var(--text-dim);font-family:'Sora',sans-serif;display:block;margin-bottom:6px">Nama
+              Lengkap</label>
+            <input type="text" placeholder="Tulis nama kamu..."
+              style="width:100%;background:#111d35;border:1px solid #1a2d4a;border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:'Sora',sans-serif;outline:none">
+          </div>
+          <div>
+            <label
+              style="font-size:12px;color:var(--text-dim);font-family:'Sora',sans-serif;display:block;margin-bottom:6px">Kelas
+              / No. Absen</label>
+            <input type="text" placeholder="Contoh: XI IPA 2 / 15"
+              style="width:100%;background:#111d35;border:1px solid #1a2d4a;border-radius:8px;padding:10px 14px;color:var(--text);font-size:14px;font-family:'Sora',sans-serif;outline:none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Kegiatan 1 -->
+      <div class="panel p-5 mb-4">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div
+            style="width:32px;height:32px;border-radius:50%;background:rgba(0,229,255,0.15);border:1px solid rgba(0,229,255,0.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--accent);font-family:'Space Mono',monospace;flex-shrink:0">
+            1</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);font-family:'Sora',sans-serif">Kegiatan 1:
+            Pengaruh Frekuensi</div>
+        </div>
+        <p style="font-size:13px;color:#8aa8c8;line-height:1.7;font-family:'Sora',sans-serif;margin-bottom:14px">Buka
+          tab <strong style="color:var(--accent)">Simulasi</strong>, atur amplitudo ke 50% dan medium ke Udara.
+          Variasikan frekuensi dan catat pengamatanmu pada tabel berikut.</p>
+        <div style="overflow-x:auto;margin-bottom:14px">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;font-family:'Sora',sans-serif">
+            <thead>
+              <tr style="background:rgba(0,229,255,0.08)">
+                <th
+                  style="border:1px solid #1a2d4a;padding:10px 14px;color:var(--accent);font-weight:700;text-align:center">
+                  Frekuensi (Hz)</th>
+                <th
+                  style="border:1px solid #1a2d4a;padding:10px 14px;color:var(--accent);font-weight:700;text-align:center">
+                  Panjang Gelombang λ (m)</th>
+                <th
+                  style="border:1px solid #1a2d4a;padding:10px 14px;color:var(--accent);font-weight:700;text-align:center">
+                  Periode T (ms)</th>
+                <th
+                  style="border:1px solid #1a2d4a;padding:10px 14px;color:var(--accent);font-weight:700;text-align:center">
+                  Nada Terdengar</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border:1px solid #1a2d4a;padding:10px 14px;color:#8aa8c8;text-align:center">200</td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="Rendah/Tinggi..."></td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #1a2d4a;padding:10px 14px;color:#8aa8c8;text-align:center">500</td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="Rendah/Tinggi..."></td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #1a2d4a;padding:10px 14px;color:#8aa8c8;text-align:center">1000</td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="Rendah/Tinggi..."></td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #1a2d4a;padding:10px 14px;color:#8aa8c8;text-align:center">2000</td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="Rendah/Tinggi..."></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <label
+            style="font-size:12px;color:var(--text-dim);font-family:'Sora',sans-serif;display:block;margin-bottom:6px">Kesimpulan
+            Kegiatan 1:</label>
+          <textarea placeholder="Tuliskan kesimpulanmu tentang pengaruh frekuensi terhadap sifat bunyi..."
+            style="width:100%;background:#111d35;border:1px solid #1a2d4a;border-radius:8px;padding:12px 14px;color:var(--text);font-size:13px;font-family:'Sora',sans-serif;outline:none;min-height:80px;resize:vertical;line-height:1.6"></textarea>
+        </div>
+      </div>
+
+      <!-- Kegiatan 2 -->
+      <div class="panel p-5 mb-4">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+          <div
+            style="width:32px;height:32px;border-radius:50%;background:rgba(255,107,53,0.15);border:1px solid rgba(255,107,53,0.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--accent2);font-family:'Space Mono',monospace;flex-shrink:0">
+            2</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);font-family:'Sora',sans-serif">Kegiatan 2:
+            Pengaruh Medium</div>
+        </div>
+        <p style="font-size:13px;color:#8aa8c8;line-height:1.7;font-family:'Sora',sans-serif;margin-bottom:14px">Atur
+          frekuensi 440 Hz dan amplitudo 50%. Ganti medium dan catat perubahan kecepatan bunyi.</p>
+        <div style="overflow-x:auto;margin-bottom:14px">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;font-family:'Sora',sans-serif">
+            <thead>
+              <tr style="background:rgba(255,107,53,0.08)">
+                <th
+                  style="border:1px solid #1a2d4a;padding:10px 14px;color:var(--accent2);font-weight:700;text-align:center">
+                  Medium</th>
+                <th
+                  style="border:1px solid #1a2d4a;padding:10px 14px;color:var(--accent2);font-weight:700;text-align:center">
+                  Kecepatan (m/s)</th>
+                <th
+                  style="border:1px solid #1a2d4a;padding:10px 14px;color:var(--accent2);font-weight:700;text-align:center">
+                  λ yang terbaca (m)</th>
+                <th
+                  style="border:1px solid #1a2d4a;padding:10px 14px;color:var(--accent2);font-weight:700;text-align:center">
+                  Kerapatan Medium</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="border:1px solid #1a2d4a;padding:10px 14px;color:#8aa8c8;text-align:center">🌬️ Udara</td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="Rendah/Sedang/Tinggi"></td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #1a2d4a;padding:10px 14px;color:#8aa8c8;text-align:center">💧 Air</td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="Rendah/Sedang/Tinggi"></td>
+              </tr>
+              <tr>
+                <td style="border:1px solid #1a2d4a;padding:10px 14px;color:#8aa8c8;text-align:center">⚙️ Baja</td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="..."></td>
+                <td style="border:1px solid #1a2d4a;padding:8px"><input type="text"
+                    style="width:100%;background:transparent;border:none;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;text-align:center;outline:none"
+                    placeholder="Rendah/Sedang/Tinggi"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <label
+            style="font-size:12px;color:var(--text-dim);font-family:'Sora',sans-serif;display:block;margin-bottom:6px">Kesimpulan
+            Kegiatan 2:</label>
+          <textarea placeholder="Tuliskan hubungan antara kerapatan medium dengan kecepatan rambat bunyi..."
+            style="width:100%;background:#111d35;border:1px solid #1a2d4a;border-radius:8px;padding:12px 14px;color:var(--text);font-size:13px;font-family:'Sora',sans-serif;outline:none;min-height:80px;resize:vertical;line-height:1.6"></textarea>
+        </div>
+      </div>
+
+      <!-- Pertanyaan Refleksi -->
+      <div class="panel p-5 mb-4">
+        <div
+          style="font-size:13px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:var(--accent3);font-family:'Space Mono',monospace;margin-bottom:14px">
+          Pertanyaan Refleksi</div>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div>
+            <p style="font-size:13px;color:#c8dff0;line-height:1.7;font-family:'Sora',sans-serif;margin-bottom:8px">1.
+              Berdasarkan fenomena Aldo, mengapa suara terdengar berbeda saat ia berada di kamar mandi berisi air
+              dibandingkan di kamar?</p>
+            <textarea placeholder="Jawaban kamu..."
+              style="width:100%;background:#111d35;border:1px solid #1a2d4a;border-radius:8px;padding:12px 14px;color:var(--text);font-size:13px;font-family:'Sora',sans-serif;outline:none;min-height:70px;resize:vertical;line-height:1.6"></textarea>
+          </div>
+          <div>
+            <p style="font-size:13px;color:#c8dff0;line-height:1.7;font-family:'Sora',sans-serif;margin-bottom:8px">2.
+              Jika frekuensi bertambah, apa yang terjadi pada panjang gelombang (bila kecepatan tetap)? Jelaskan!</p>
+            <textarea placeholder="Jawaban kamu..."
+              style="width:100%;background:#111d35;border:1px solid #1a2d4a;border-radius:8px;padding:12px 14px;color:var(--text);font-size:13px;font-family:'Sora',sans-serif;outline:none;min-height:70px;resize:vertical;line-height:1.6"></textarea>
+          </div>
+          <div>
+            <p style="font-size:13px;color:#c8dff0;line-height:1.7;font-family:'Sora',sans-serif;margin-bottom:8px">3.
+              Apa yang dimaksud dengan gelombang longitudinal? Hubungkan dengan apa yang kamu lihat di simulasi!</p>
+            <textarea placeholder="Jawaban kamu..."
+              style="width:100%;background:#111d35;border:1px solid #1a2d4a;border-radius:8px;padding:12px 14px;color:var(--text);font-size:13px;font-family:'Sora',sans-serif;outline:none;min-height:70px;resize:vertical;line-height:1.6"></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TAB: QUIZ ===== -->
+    <div class="tab-page" id="tab-quiz">
+      <div class="mb-6">
+        <h1 class="text-2xl font-extrabold section-title">Teka-Teki Silang Profesional</h1>
+        <p style="color:var(--text-dim);font-size:14px;margin-top:10px">
+          Klik soal → isi jawaban langsung di grid!
+        </p>
+      </div>
+
+      <div class="panel p-6 mb-4">
+        <div id="ttsGrid" style="display:grid;grid-template-columns:repeat(13,42px);gap:3px;justify-content:center">
+        </div>
+      </div>
+
+      <div class="grid gap-4 mb-4" style="grid-template-columns:1fr 1fr">
+
+        <div class="panel p-4">
+          <h3 class="font-bold mb-2">Mendatar</h3>
+          <ul id="soalMendatar" class="space-y-1 text-sm"></ul>
+        </div>
+
+        <div class="panel p-4">
+          <h3 class="font-bold mb-2">Menurun</h3>
+          <ul id="soalMenurun" class="space-y-1 text-sm"></ul>
+        </div>
+
+      </div>
+
+      <div class="text-center">
+        <button class="btn-primary" onclick="cekTTS()">Cek Jawaban</button>
+        <p id="hasilTTS" style="margin-top:10px"></p>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+
+    // ==================== AUDIO ENGINE ====================
+    let audioCtx = null, oscillator = null, gainNode = null;
+    let isPlaying = false;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+    function playSound() {
+      initAudio();
+      if (oscillator) { oscillator.stop(); oscillator = null; }
+      gainNode = audioCtx.createGain();
+      gainNode.gain.value = 0.08 * (ampVal / 100);
+      gainNode.connect(audioCtx.destination);
+      oscillator = audioCtx.createOscillator();
+      oscillator.type = 'sine';
+      oscillator.frequency.value = freqVal;
+      oscillator.connect(gainNode);
+      oscillator.start();
+      isPlaying = true;
+      document.getElementById('playBtn').textContent = '🔊 Sedang Bermain';
+    }
+    function stopSound() {
+      if (oscillator) { oscillator.stop(); oscillator = null; }
+      isPlaying = false;
+      document.getElementById('playBtn').textContent = '▶ Play Bunyi';
+    }
+
+    // ==================== SIMULATION STATE ====================
+    let freqVal = 440, ampVal = 50, speedVal = 343;
+    let time = 0, paused = false, animId;
+
+    const freqSlider = document.getElementById('freqSlider');
+    const ampSlider = document.getElementById('ampSlider');
+
+    function updateFreq(v) {
+      freqVal = parseInt(v);
+      document.getElementById('freqBadge').textContent = freqVal + ' Hz';
+      updateDerived();
+      if (isPlaying && oscillator) oscillator.frequency.setValueAtTime(freqVal, audioCtx.currentTime);
+    }
+    function updateAmp(v) {
+      ampVal = parseInt(v);
+      document.getElementById('ampBadge').textContent = ampVal + '%';
+      if (isPlaying && gainNode) gainNode.gain.setValueAtTime(0.08 * ampVal / 100, audioCtx.currentTime);
+    }
+    function updateDerived() {
+      const lambda = speedVal / freqVal;
+      const period = 1000 / freqVal;
+      document.getElementById('waveLen').textContent = lambda.toFixed(2);
+      document.getElementById('period').textContent = period.toFixed(2);
+      document.getElementById('speedVal').textContent = speedVal;
+    }
+
+
+    freqSlider.addEventListener('input', e => updateFreq(e.target.value));
+    ampSlider.addEventListener('input', e => updateAmp(e.target.value));
+
+    // Medium buttons
+    document.querySelectorAll('.medium-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        document.querySelectorAll('.medium-btn').forEach(b => { b.className = b.className.replace('btn-primary', 'btn-secondary'); });
+        this.className = this.className.replace('btn-secondary', 'btn-primary');
+        speedVal = parseInt(this.dataset.v);
+        document.getElementById('mediumName').textContent = this.dataset.name;
+        updateDerived();
+      });
+    });
+
+    // Buttons
+    document.getElementById('playBtn').addEventListener('click', playSound);
+    document.getElementById('pauseBtn').addEventListener('click', () => { paused = !paused; document.getElementById('pauseBtn').textContent = paused ? '▶ Lanjut' : '⏸ Pause'; });
+    document.getElementById('stopBtn').addEventListener('click', () => { stopSound(); });
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      freqSlider.value = 440; updateFreq(440);
+      ampSlider.value = 50; updateAmp(50);
+      speedVal = 343;
+      document.getElementById('mediumName').textContent = 'Udara (343 m/s)';
+      document.querySelectorAll('.medium-btn').forEach((b, i) => {
+        b.className = i === 0 ? b.className.replace('btn-secondary', 'btn-primary') : b.className.replace('btn-primary', 'btn-secondary');
+      });
+      updateDerived();
+    });
+
+    // ==================== CANVAS SETUP ====================
+    const waveCanvas = document.getElementById('waveCanvas');
+    const waveCtx = waveCanvas.getContext('2d');
+    const pressureCanvas = document.getElementById('pressureCanvas');
+    const pressureCtx = pressureCanvas.getContext('2d');
+    const particleCanvas = document.getElementById('particleCanvas');
+    const particleCtx = particleCanvas.getContext('2d');
+
+    function resizeCanvases() {
+      [waveCanvas, pressureCanvas].forEach(c => {
+        c.width = c.offsetWidth * devicePixelRatio;
+        c.height = c.offsetHeight * devicePixelRatio;
+        c.getContext('2d').scale(devicePixelRatio, devicePixelRatio);
+      });
+      particleCanvas.width = waveCanvas.offsetWidth * devicePixelRatio;
+      particleCanvas.height = waveCanvas.offsetHeight * devicePixelRatio;
+      particleCanvas.style.width = waveCanvas.offsetWidth + 'px';
+      particleCanvas.style.height = waveCanvas.offsetHeight + 'px';
+      particleCtx.scale(devicePixelRatio, devicePixelRatio);
+    }
+
+    // ==================== DRAW WAVE (Longitudinal Particles) ====================
+    function drawWave(t) {
+      const W = waveCanvas.offsetWidth, H = waveCanvas.offsetHeight;
+      waveCtx.clearRect(0, 0, W, H);
+
+      // Background
+      waveCtx.fillStyle = '#080f1e';
+      waveCtx.fillRect(0, 0, W, H);
+
+      // Grid lines
+      waveCtx.strokeStyle = 'rgba(26,45,74,0.6)';
+      waveCtx.lineWidth = 0.5;
+      for (let x = 0; x < W; x += 40) { waveCtx.beginPath(); waveCtx.moveTo(x, 0); waveCtx.lineTo(x, H); waveCtx.stroke(); }
+      for (let y = 0; y < H; y += 40) { waveCtx.beginPath(); waveCtx.moveTo(0, y); waveCtx.lineTo(W, y); waveCtx.stroke(); }
+
+      const numParticles = 60;
+      const amp = (ampVal / 100) * 28;
+      const k = (2 * Math.PI * freqVal) / speedVal;
+      const omega = 2 * Math.PI * freqVal;
+      const rowY = H / 2;
+      const spacing = W / numParticles;
+
+      for (let i = 0; i < numParticles; i++) {
+        const x0 = i * spacing + spacing / 2;
+        const displacement = amp * Math.sin(k * x0 - omega * t * 0.001);
+        const px = x0 + displacement;
+        const density = Math.abs(displacement) / (amp + 0.001);
+        const alpha = 0.5 + 0.5 * (1 - density);
+
+        // Compression/rarefaction color gradient
+        const r = Math.floor(0 + density * 50);
+        const g = Math.floor(160 + (1 - density) * 69);
+        const b = Math.floor(200 + (1 - density) * 55);
+
+        waveCtx.beginPath();
+        waveCtx.arc(px, rowY, 4, 0, Math.PI * 2);
+        waveCtx.fillStyle = `rgba(${r},${g},${b},${alpha})`;
+        waveCtx.fill();
+
+        // Glow
+        if (density < 0.3) {
+          const grad = waveCtx.createRadialGradient(px, rowY, 0, px, rowY, 10);
+          grad.addColorStop(0, `rgba(0,229,255,0.3)`);
+          grad.addColorStop(1, 'rgba(0,229,255,0)');
+          waveCtx.beginPath();
+          waveCtx.arc(px, rowY, 10, 0, Math.PI * 2);
+          waveCtx.fillStyle = grad;
+          waveCtx.fill();
+        }
+      }
+
+      // Labels
+      waveCtx.fillStyle = 'rgba(168,255,62,0.9)';
+      waveCtx.font = 'bold 12px Sora, sans-serif';
+      waveCtx.fillText('← RAPATAN (kompresi)', 10, H - 10);
+      waveCtx.fillStyle = 'rgba(255,107,53,0.9)';
+      waveCtx.fillText('RENGGANGAN (rarefaksi) →', W - 210, H - 10);
+    }
+
+    // ==================== DRAW PRESSURE GRAPH ====================
+    const pressureHistory = [];
+    function drawPressure(t) {
+      const W = pressureCanvas.offsetWidth, H = pressureCanvas.offsetHeight;
+      pressureCtx.clearRect(0, 0, W, H);
+      pressureCtx.fillStyle = '#080f1e';
+      pressureCtx.fillRect(0, 0, W, H);
+
+      const amp = (ampVal / 100) * (H * 0.38);
+      const omega = 2 * Math.PI * freqVal;
+      const midY = H / 2;
+
+      // Grid
+      pressureCtx.strokeStyle = 'rgba(26,45,74,0.6)';
+      pressureCtx.lineWidth = 0.5;
+      pressureCtx.beginPath(); pressureCtx.moveTo(0, midY); pressureCtx.lineTo(W, midY); pressureCtx.stroke();
+
+      // Wave fill
+      pressureCtx.beginPath();
+      pressureCtx.moveTo(0, midY);
+      for (let x = 0; x <= W; x++) {
+        const y = midY - amp * Math.sin(omega * (t - x * 0.8) * 0.001);
+        pressureCtx.lineTo(x, y);
+      }
+      pressureCtx.lineTo(W, midY);
+      pressureCtx.closePath();
+      const grad = pressureCtx.createLinearGradient(0, midY - amp, 0, midY + amp);
+      grad.addColorStop(0, 'rgba(0,229,255,0.3)');
+      grad.addColorStop(0.5, 'rgba(0,229,255,0.05)');
+      grad.addColorStop(1, 'rgba(255,107,53,0.3)');
+      pressureCtx.fillStyle = grad;
+      pressureCtx.fill();
+
+      // Wave line
+      pressureCtx.beginPath();
+      for (let x = 0; x <= W; x++) {
+        const y = midY - amp * Math.sin(omega * (t - x * 0.8) * 0.001);
+        x === 0 ? pressureCtx.moveTo(x, y) : pressureCtx.lineTo(x, y);
+      }
+      pressureCtx.strokeStyle = '#00e5ff';
+      pressureCtx.lineWidth = 2;
+      pressureCtx.shadowColor = '#00e5ff';
+      pressureCtx.shadowBlur = 6;
+      pressureCtx.stroke();
+      pressureCtx.shadowBlur = 0;
+
+      // Labels
+      pressureCtx.fillStyle = 'rgba(0,229,255,0.9)';
+      pressureCtx.font = 'bold 12px Sora, sans-serif';
+      pressureCtx.fillText('+P (rapatan)', 8, 18);
+      pressureCtx.fillStyle = 'rgba(255,107,53,0.9)';
+      pressureCtx.fillText('−P (renggangan)', 8, H - 8);
+    }
+
+
+    // ==================== ANIMATION LOOP ====================
+    function animate(ts) {
+      if (!paused) {
+        time = ts;
+        drawWave(ts);
+        drawPressure(ts);
+      }
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resizeCanvases);
+    resizeCanvases();
+    updateDerived();
+    requestAnimationFrame(animate);
+
+    // ==================== MATERI ACCORDION ====================
+    function toggleMateri(header) {
+      const body = header.nextElementSibling;
+      const sign = header.querySelector('span:last-child');
+      const isOpen = body.classList.contains('open');
+      document.querySelectorAll('.materi-body').forEach(b => b.classList.remove('open'));
+      document.querySelectorAll('.materi-header span:last-child').forEach(s => s.textContent = '+');
+      if (!isOpen) { body.classList.add('open'); sign.textContent = '−'; }
+    }
+
+    // ==================== QUIZ ENGINE ====================
+    const questions = [
+      { q: "Gelombang bunyi termasuk jenis gelombang apa?", opts: ["Gelombang transversal", "Gelombang longitudinal", "Gelombang elektromagnetik", "Gelombang permukaan"], ans: 1, exp: "Gelombang bunyi adalah gelombang longitudinal karena partikel medium bergetar searah dengan arah rambat gelombang, membentuk rapatan dan renggangan." },
+      { q: "Apa yang terjadi pada frekuensi bunyi jika sumber bunyi mendekati pengamat? (Efek Doppler)", opts: ["Frekuensi turun", "Frekuensi tetap", "Frekuensi naik", "Amplitudo berubah"], ans: 2, exp: "Efek Doppler: saat sumber mendekati pengamat, muka gelombang terkompres sehingga frekuensi yang terdengar lebih tinggi dari frekuensi asli." },
+      { q: "Satuan frekuensi gelombang bunyi adalah...", opts: ["Meter", "Desibel", "Hertz", "Watt"], ans: 2, exp: "Frekuensi diukur dalam Hertz (Hz), yang berarti jumlah getaran per detik." },
+      { q: "Bunyi TIDAK dapat merambat melalui...", opts: ["Udara", "Air", "Baja", "Ruang hampa"], ans: 3, exp: "Bunyi adalah gelombang mekanik yang membutuhkan medium untuk merambat. Di ruang hampa tidak ada partikel medium, sehingga bunyi tidak dapat merambat." },
+      { q: "Rentang frekuensi yang dapat didengar manusia adalah...", opts: ["0 – 20 Hz", "20 – 20.000 Hz", "20.000 – 1.000.000 Hz", "1 – 100 Hz"], ans: 1, exp: "Telinga manusia normal dapat mendengar frekuensi antara 20 Hz (infrasonik) hingga 20.000 Hz (ultrasonik)." },
+      { q: "Kecepatan bunyi di udara pada suhu 20°C adalah sekitar...", opts: ["150 m/s", "343 m/s", "1480 m/s", "5100 m/s"], ans: 1, exp: "Kecepatan bunyi di udara ≈ 343 m/s pada 20°C. Rumus: v = 331 + 0,6T m/s, di mana T adalah suhu dalam Celsius." },
+      { q: "Amplitudo gelombang bunyi berkaitan dengan...", opts: ["Tinggi nada (pitch)", "Kecepatan rambat", "Keras-lemahnya bunyi", "Panjang gelombang"], ans: 2, exp: "Amplitudo menentukan keras-lemahnya bunyi (intensitas). Makin besar amplitudo, makin keras bunyi terdengar." },
+      { q: "Rumus hubungan kecepatan, frekuensi, dan panjang gelombang adalah...", opts: ["v = f + λ", "v = f × λ", "v = f / λ", "v = λ / f"], ans: 1, exp: "Hubungan besaran gelombang: v = f × λ, di mana v = kecepatan (m/s), f = frekuensi (Hz), λ = panjang gelombang (m)." },
+      { q: "Hewan manakah yang menggunakan ultrasonik untuk navigasi?", opts: ["Anjing", "Kelelawar", "Gajah", "Lumba-lumba (salah satu jawabannya)"], ans: 1, exp: "Kelelawar menggunakan ultrasonik (ekolokasi) untuk navigasi dan berburu di kegelapan. Lumba-lumba juga menggunakan ultrasonik untuk berkomunikasi." },
+      { q: "Taraf intensitas bunyi diukur dalam satuan...", opts: ["Hertz (Hz)", "Watt (W)", "Desibel (dB)", "Pascal (Pa)"], ans: 2, exp: "Taraf intensitas bunyi (TI) diukur dalam desibel (dB) dengan rumus: TI = 10 × log(I/I₀) dB, di mana I₀ = 10⁻¹² W/m²." },
+    ];
+
+    let qIdx = 0, score = 0;
+
+    function startQuiz() {
+      qIdx = 0; score = 0;
+      document.getElementById('quizStart').style.display = 'none';
+      document.getElementById('quizResult').style.display = 'none';
+      document.getElementById('quizArea').style.display = 'block';
+      showQuestion();
+    }
+
+    function showQuestion() {
+      const q = questions[qIdx];
+      document.getElementById('qNum').textContent = qIdx + 1;
+      document.getElementById('qNumBig').textContent = qIdx + 1;
+      document.getElementById('quizProgress').style.width = (qIdx / 10 * 100) + '%';
+      document.getElementById('questionText').textContent = q.q;
+      document.getElementById('feedbackArea').style.display = 'none';
+      document.getElementById('nextBtn').style.display = 'none';
+
+      const area = document.getElementById('optionsArea');
+      area.innerHTML = '';
+      q.opts.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-option';
+        btn.textContent = String.fromCharCode(65 + i) + '. ' + opt;
+        btn.onclick = () => selectAnswer(i, btn, q);
+        area.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(i, btn, q) {
+      document.querySelectorAll('.quiz-option').forEach(b => b.disabled = true);
+      const correct = i === q.ans;
+      btn.classList.add(correct ? 'correct' : 'wrong');
+      document.querySelectorAll('.quiz-option')[q.ans].classList.add('correct');
+      if (correct) score++;
+
+      const fb = document.getElementById('feedbackArea');
+      document.getElementById('feedbackTitle').textContent = correct ? '✅ Benar!' : '❌ Kurang tepat';
+      document.getElementById('feedbackTitle').style.color = correct ? 'var(--accent3)' : '#ff8080';
+      document.getElementById('feedbackText').textContent = q.exp;
+      fb.style.display = 'block';
+      fb.style.borderColor = correct ? 'rgba(168,255,62,0.3)' : 'rgba(255,96,96,0.3)';
+
+      document.getElementById('nextBtn').style.display = 'inline-block';
+      document.getElementById('nextBtn').textContent = qIdx < 9 ? 'Soal Berikutnya →' : 'Lihat Hasil 🏆';
+    }
+
+    function nextQuestion() {
+      qIdx++;
+      if (qIdx >= 10) {
+        showResult();
+      } else {
+        showQuestion();
+      }
+    }
+
+    function showResult() {
+      document.getElementById('quizArea').style.display = 'none';
+      document.getElementById('quizResult').style.display = 'block';
+      document.getElementById('scoreRing').textContent = score + '/10';
+      const pct = score * 10;
+      const titles = ['Tetap semangat belajar!', 'Sudah bagus, terus belajar!', 'Keren! Hampir sempurna!', 'Luar biasa! Master gelombang bunyi! 🎉'];
+      const msgs = ['Yuk review lagi materi gelombang bunyi.', 'Kamu sudah paham dasar-dasarnya. Pelajari lebih dalam!', 'Pemahaman kamu sangat baik!', 'Nilai sempurna! Kamu benar-benar menguasai materi ini!'];
+      const badges = ['🔰 Pemula', '⭐ Berkembang', '🌟 Mahir', '🏆 Master'];
+      const idx = score < 4 ? 0 : score < 7 ? 1 : score < 10 ? 2 : 3;
+      document.getElementById('resultTitle').textContent = titles[idx];
+      document.getElementById('resultMsg').textContent = msgs[idx];
+      document.getElementById('resultBadge').textContent = badges[idx] + ' — Skor: ' + pct + '%';
+      document.getElementById('quizProgress').style.width = '100%';
+      document.getElementById('qNum').textContent = '10';
+    }
+    // ==================== TTS ====================
+    let ttsInitialized = false;
+
+    // ==================== DATA ====================
+
+    const size = 13;
+
+
+    const layout = [
+      [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      [0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+      [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+      [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+      [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0],
+      [0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+      [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+      [1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+      [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    ];
+
+    const answers = [
+      ["", "", "", "F", "", "", "", "", "", "", "", "", ""],
+      ["", "H", "E", "R", "T", "Z", "", "", "", "", "", "", ""],
+      ["", "", "", "E", "", "", "R", "", "", "", "", "", ""],
+      ["", "", "", "K", "E", "R", "A", "P", "A", "T", "A", "N", ""],
+      ["", "", "", "U", "", "", "P", "", "", "", "", "A", ""],
+      ["", "", "", "E", "", "", "A", "", "", "", "", "D", ""],
+      ["", "L", "O", "N", "G", "I", "T", "U", "D", "I", "N", "A", "L"],
+      ["", "", "", "S", "", "", "", "", "", "N", "", "", ""],
+      ["M", "E", "D", "I", "U", "M", "", "", "", "T", "", "", ""],
+      ["", "", "", "", "", "", "", "", "", "E", "", "", ""],
+      ["", "", "", "", "", "", "", "", "", "N", "", "", ""],
+      ["", "", "", "R", "E", "F", "L", "E", "K", "S", "I", "", ""],
+      ["", "", "", "", "", "", "", "", "", "I", "", "", ""],
+      ["", "", "", "", "", "", "", "", "", "T", "", "", ""],
+      ["", "", "", "", "", "P", "A", "N", "J", "A", "N", "G", ""],
+      ["", "", "", "", "", "", "", "", "", "S", "", "", ""],
+    ];
+
+    function isStartAcross(r, c) {
+      return layout[r][c] === 1 && (c === 0 || layout[r][c - 1] === 0) && (c + 1 < size && layout[r][c + 1] === 1);
+    }
+
+    function isStartDown(r, c) {
+      return layout[r][c] === 1 && (r === 0 || layout[r - 1][c] === 0) && (r + 1 < size && layout[r + 1][c] === 1);
+    }
+    // soal
+    const across = [
+      { no: 2, row: 1, col: 1, clue: "Satuan yang digunakan untuk menyatakan jumlah getaran per detik. " },                   // HERTZ
+      { no: 4, row: 3, col: 3, clue: "Faktor utama yang menyebabkan perbedaan cepat rambat bunyi pada berbagai zat." },         // KERAPATAN
+      { no: 6, row: 6, col: 1, clue: "Jenis gelombang bunyi berdasarkan arah getar dan arah rambatnya." },              // LONGITUDINAL
+      { no: 8, row: 8, col: 0, clue: "Jika bunyi tidak dapat merambat di suatu tempat, dapat disimpulkan bahwa tempat tersebut tidak memiliki … " },        // MEDIUM
+      { no: 9, row: 11, col: 3, clue: "Peristiwa perubahan arah bunyi akibat mengenai permukaan keras." },                   // REFLEKSI
+      { no: 10, row: 14, col: 5, clue: "Jika cepat rambat tetap, kenaikan frekuensi akan menyebabkan perubahan pada … gelombang." },            // PANJANG
+    ];
+
+    const down = [
+      { no: 1, row: 0, col: 3, clue: "Sifat bunyi yang tidak berubah meskipun amplitudo diubah" },            // FREKUENSI
+      { no: 3, row: 2, col: 3, clue: "Bunyi merambat lebih cepat pada baja dibanding udara karena perbedaan … medium." },        // RAPAT
+      { no: 5, row: 7, col: 0, clue: "Jika frekuensi suatu bunyi dinaikkan sementara medium tetap, maka karakter bunyi yang berubah adalah …" },                 // NADA
+      { no: 7, row: 7, col: 9, clue: "Ketika amplitudo gelombang diperbesar tanpa mengubah frekuensi, sifat bunyi yang meningkat adalah …" },          // INTENSITAS
+    ];
+
+    let activeCells = [];
+    let direction = "across";
+
+    // ==================== RENDER GRID ====================
+
+    function renderGrid() {
+      const grid = document.getElementById("ttsGrid");
+      grid.innerHTML = "";
+
+      let number = 1;
+
+      for (let r = 0; r < 16; r++) {
+        for (let c = 0; c < size; c++) {
+
+          if (layout[r][c] === 1) {
+
+            const wrapper = document.createElement("div");
+            wrapper.style.position = "relative";
+            wrapper.style.width = "42px";
+            wrapper.style.height = "42px";
+
+            const input = document.createElement("input");
+            input.maxLength = 1;
+            input.className = "tts-cell";
+            input.dataset.row = r;
+            input.dataset.col = c;
+
+            input.style.width = "42px";
+            input.style.height = "42px";
+            input.style.fontSize = "18px";
+            input.style.textAlign = "center";
+            input.style.background = "#0d1526";
+            input.style.color = "white";
+            input.style.border = "1px solid #1a2d4a";
+            input.style.textTransform = "uppercase";
+            input.style.borderRadius = "4px";
+
+            input.addEventListener("input", handleInput);
+            input.addEventListener("keydown", handleBackspace);
+
+            // 🔢 CEK APAKAH PERLU NOMOR
+            if (isStartAcross(r, c) || isStartDown(r, c)) {
+              const num = document.createElement("span");
+              num.textContent = number++;
+              num.style.position = "absolute";
+              num.style.top = "2px";
+              num.style.left = "4px";
+              num.style.fontSize = "10px";
+              num.style.color = "#00e5ff";
+
+              wrapper.appendChild(num);
+            }
+
+            wrapper.appendChild(input);
+            grid.appendChild(wrapper);
+
+          } else {
+            const div = document.createElement("div");
+            div.style.background = "black";
+            div.style.width = "42px";
+            div.style.height = "42px";
+            grid.appendChild(div);
+          }
+        }
+      }
+    }
+
+    // ==================== NAVIGASI ====================
+
+    function handleInput(e) {
+      const val = e.target.value.toUpperCase();
+      e.target.value = val;
+
+      moveNext(e.target);
+    }
+
+    function handleBackspace(e) {
+      if (e.key === "Backspace" && e.target.value === "") {
+        movePrev(e.target);
+      }
+    }
+
+    function moveNext(cell) {
+      const r = parseInt(cell.dataset.row);
+      const c = parseInt(cell.dataset.col);
+
+      let next;
+      if (direction === "across") {
+        next = document.querySelector(`[data-row="${r}"][data-col="${c + 1}"]`);
+      } else {
+        next = document.querySelector(`[data-row="${r + 1}"][data-col="${c}"]`);
+      }
+
+      if (next) next.focus();
+    }
+
+    function movePrev(cell) {
+      const r = parseInt(cell.dataset.row);
+      const c = parseInt(cell.dataset.col);
+
+      let prev;
+      if (direction === "across") {
+        prev = document.querySelector(`[data-row="${r}"][data-col="${c - 1}"]`);
+      } else {
+        prev = document.querySelector(`[data-row="${r - 1}"][data-col="${c}"]`);
+      }
+
+      if (prev) prev.focus();
+    }
+
+    // ==================== HIGHLIGHT ====================
+
+    function highlight(clue, dir) {
+      direction = dir;
+      activeCells = [];
+
+      document.querySelectorAll(".tts-cell").forEach(c => c.style.background = "#0d1526");
+
+      let r = clue.row;
+      let c = clue.col;
+
+      while (layout[r] && layout[r][c] === 1) {
+        const cell = document.querySelector(`[data-row="${r}"][data-col="${c}"]`);
+        if (cell) {
+          cell.style.background = "#11334d";
+          activeCells.push(cell);
+        }
+
+        if (dir === "across") c++;
+        else r++;
+      }
+
+      activeCells[0]?.focus();
+    }
+
+    // ==================== SOAL ====================
+
+    function renderSoal() {
+      const mendatar = document.getElementById("soalMendatar");
+      const menurun = document.getElementById("soalMenurun");
+
+      // 🔥 reset dulu biar tidak dobel
+      mendatar.innerHTML = "";
+      menurun.innerHTML = "";
+
+      // ===== MENDATAR =====
+      across.forEach(s => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `<span style="color:#00e5ff">${s.no}.</span> ${s.clue}`;
+        li.style.cursor = "pointer";
+        li.style.padding = "4px 6px";
+        li.style.borderRadius = "6px";
+
+        li.onclick = () => highlight(s, "across");
+
+        li.onmouseenter = () => li.style.background = "rgba(0,229,255,0.1)";
+        li.onmouseleave = () => li.style.background = "transparent";
+
+        mendatar.appendChild(li);
+      });
+
+      // ===== MENURUN =====
+      down.forEach(s => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `<span style="color:#ff6b35">${s.no}.</span> ${s.clue}`;
+        li.style.cursor = "pointer";
+        li.style.padding = "4px 6px";
+        li.style.borderRadius = "6px";
+
+        li.onclick = () => highlight(s, "down");
+
+        li.onmouseenter = () => li.style.background = "rgba(255,107,53,0.1)";
+        li.onmouseleave = () => li.style.background = "transparent";
+
+        menurun.appendChild(li);
+      });
+    }
+
+    // ==================== CEK ====================
+
+    function cekTTS() {
+      let benar = 0, total = 0;
+
+      document.querySelectorAll(".tts-cell").forEach(cell => {
+        const r = cell.dataset.row;
+        const c = cell.dataset.col;
+
+        if (answers[r][c] !== "") {
+          total++;
+          if (cell.value === answers[r][c]) {
+            benar++;
+            cell.style.background = "#1f3d1f";
+          } else {
+            cell.style.background = "#3d1f1f";
+          }
+        }
+      });
+
+      document.getElementById("hasilTTS").innerText =
+        "Skor: " + benar + " / " + total;
+    }
+
+    function masukApp(targetTab) {
+      const intro = document.getElementById("introScreen");
+      intro.style.display = "none";
+      document.getElementById("mainHeader").style.display = "block";
+      document.getElementById("mainContent").style.display = "block";
+
+      // Switch to the requested tab
+      if (targetTab) {
+        switchTab(targetTab);
+      }
+
+      // 🔥 PENTING: resize ulang setelah tampil
+      setTimeout(() => {
+        resizeCanvases();
+      }, 100);
+    }
+    // ==================== INIT ====================
+
+    // ==================== TAB SWITCHING ====================
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-page').forEach(p => p.classList.remove('active'));
+      const btn = document.querySelector(`[data-tab="${tabName}"]`);
+      if (btn) btn.classList.add('active');
+      const page = document.getElementById(`tab-${tabName}`);
+      if (page) page.classList.add('active');
+
+      if (tabName === 'quiz') {
+        if (!ttsInitialized) {
+          renderGrid();
+          renderSoal();
+          ttsInitialized = true;
+        }
+      }
+      if (tabName === 'simulasi') {
+        resizeCanvases();
+      }
+    }
+
+    document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+  </script>
+
+</body>
+
+</html>
